@@ -40,11 +40,6 @@ def test_correct():
 
 
 def test_wrong_parameter_type():
-    with pytest.raises(TypeError):
-        no_annotations("4", 2)
-    with pytest.raises(TypeError):
-        no_annotations("4", 2)
-
     with pytest.raises(ParameterTypeError):
         only_strings("a string", 42)
     with pytest.raises(ParameterTypeError):
