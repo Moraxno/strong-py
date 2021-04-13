@@ -5,6 +5,14 @@ from .types import UnspecifiedType, UnionType
 from .exceptions import NonKwargInDecoratorError
 
 
+class FunctionSpecifications:
+    def __init__(self, function):
+        argspec = getfullargspec(function)
+        
+        self.typehints = generate_typehints(function)
+        self.args = argspec.args
+
+
 def generate_typehints(func):
     argspec = getfullargspec(func)
 
@@ -19,20 +27,20 @@ def generate_typehints(func):
     return td
 
 
-def args_dict(argnames, args, kwargs):
-    fa = {}
+def construct_args_dict(argnames, args, kwargs):
+    args_dict = {}
 
     left_args = [arg for arg in argnames]
 
     # Align all keywordless arguments
     for name, arg in zip(argnames, args):
-        fa[name] = arg
+        args_dict[name] = arg
         left_args.remove(name)
 
     for key, value in kwargs.items():
-        fa[key] = value
+        args_dict[key] = value
 
-    return fa
+    return args_dict
 
 
 def unpack_type(packed_type):
