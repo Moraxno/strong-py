@@ -8,7 +8,7 @@ from .exceptions import NonKwargInDecoratorError
 class FunctionSpecifications:
     def __init__(self, function):
         argspec = getfullargspec(function)
-        
+
         self.typehints = generate_typehints(function)
         self.args = argspec.args
 
