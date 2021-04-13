@@ -1,16 +1,13 @@
-﻿_PARAMETER_TYPE_ERROR_MSG =\
-    "{0}() parameter '{1}' is of type '{2}' and should be of type '{3}'."
-
-
-class ParameterTypeError(Exception):
+﻿class ParameterTypeError(Exception):
     """ Signals an ill-typed parameter passed into a strictly type-checking
         function.
     """
 
+    TEMPLATE_MESSAGE = \
+        "{0} parameter '{1}' is of type '{2}' and should be of type '{3}'."
+
     def __init__(self, function, paramname, targettype, giventtype):
-        global _PARAMETER_TYPE_ERROR_MSG
-        
-        message = _PARAMETER_TYPE_ERROR_MSG.format(
+        message = self.TEMPLATE_MESSAGE.format(
             function.__name__,
             paramname,
             giventtype.__name__,
@@ -20,20 +17,26 @@ class ParameterTypeError(Exception):
         super().__init__(message)
 
 
-_RETURN_TYPE_ERROR_MSG =\
-    "Return value of {0}() is of type '{1}' and should be of type '{2}'."
-
-
 class ReturnTypeError(Exception):
-    def __init__(self, function, targettype, giventtype):
-        global _RETURN_TYPE_ERROR_MSG
+    TEMPLATE_MESSAGE = \
+        "Return value of {0} is of type '{1}' and should be of type '{2}'."
 
-        message = _RETURN_TYPE_ERROR_MSG.format(
+    def __init__(self, function, targettype, giventype):
+
+        message = self.TEMPLATE_MESSAGE.format(
             function.__name__,
-            giventtype.__name__,
+            giventype.__name__,
             targettype.__name__,
         )
 
+        super().__init__(message)
+
+
+class ParameterTypehintMissingError(Exception):
+    TEMPLATE_MESSAGE = "Parameter {1} of {0} has no type hint."
+
+    def __init__(self, function, param):
+        message = self.TEMPLATE_MESSAGE.format(function.__name__, param)
         super().__init__(message)
 
 
