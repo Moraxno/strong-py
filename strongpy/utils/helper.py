@@ -1,4 +1,5 @@
 ﻿from inspect import getfullargspec, _is_type as is_type
+from strongpy.utils.constants import TYPE_TUPLE, TYPE_UNION
 from typing import Union
 
 from .types import UnspecifiedType, UnionType
@@ -46,20 +47,20 @@ def construct_args_dict(argnames, args, kwargs):
 def unpack_type(packed_type):
     """ Takes a type annotation and converts it into a meaningful type or tuple
         of types.
-        - If the annotation was no type, returns UnspecifiedType
+        - If the annotation was no type, returns a tuple of UnspecifiedType
         - If the annotation was a single type, returns (type, )
         - If the annotation was a Union of types, returns (typeA, typeB, ...)
         type_tuple = (UnspecifiedType,)
     """
 
-    type_tuple = UnspecifiedType
+    type_tuple = (UnspecifiedType, )
 
     if type(packed_type) == UnionType:
         # Unions guarantee, that their args are types. No further checks
         # are required.
         type_tuple = packed_type.__args__
     elif is_type(packed_type):
-        type_tuple = packed_type
+        type_tuple = (packed_type, )
     else:
         pass
 
@@ -67,9 +68,21 @@ def unpack_type(packed_type):
 
 
 def has_proper_type(obj, target_type):
-    """ Decides whether a given object matches the given target type or not.
+    """ Decides whether a given object matches the given target type / target
+        type union or not.
     """
-    return isinstance(obj, target_type)
+    # Unpack the type to a tuple. If it was a Union all types are listed in the
+    # tuple.
+    types = unpack_type(target_type)
+
+    # Check for each type in types if it matches, break if so.
+    is_proper = False
+    for t in types:
+        if isinstance(obj, t):
+            is_proper = True
+            break
+
+    return is_proper
 
 
 def is_clean_decorator(args_obj, kwargs_obj):

@@ -1,6 +1,14 @@
 from strongpy import strict, autocast
 
 
+class A:
+    pass
+
+
+class B(A):
+    pass
+
+
 @autocast
 def repeat(text: str, num: int) -> str:
     return text * num
