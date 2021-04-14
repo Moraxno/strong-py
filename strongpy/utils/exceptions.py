@@ -40,6 +40,14 @@ class ParameterTypehintMissingError(Exception):
         super().__init__(message)
 
 
+class ReturnTypehintMissingError(Exception):
+    TEMPLATE_MESSAGE = "{0} has no typehint for its return type."
+
+    def __init__(self, function):
+        message = self.TEMPLATE_MESSAGE.format(function.__name__)
+        super().__init__(message)
+
+
 _NON_KWARG_IN_DECORATOR_MSG =\
     "StrongPy decorators do not accept keywordless arguments. The following \
     arguments were passed without a keyword: {0}."

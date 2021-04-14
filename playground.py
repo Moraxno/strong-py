@@ -1,27 +1,15 @@
 # import __main__
 import strongpy
-from strongpy import strict
+from strongpy import strict, autocast
+
+@autocast
+def repeat(text: str, num: int) -> bool:
+    return text * num
 
 
-@strict()
-def __abc(a: int, b: str, c, d: float, aa: str = "hi", ba: 1 = 4):
-    pass
+def unsafe_repeat(text, num):
+    return text * num
 
 
-__abc(1, "2", 3, 4.0, ba=5, aa="6")
-
-
-def wrapper(*args, **kwargs):
-    if kwargs == {} and len(args) == 1:
-        print("No args")
-    else:
-        print("args")
-        print(args, kwargs)
-        return lambda x: x
-
-
-
-@wrapper()
-def f(num):
-    return num + 1
-
+print(repeat(12, 4))
+print(unsafe_repeat(12, 4))

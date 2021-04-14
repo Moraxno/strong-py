@@ -14,45 +14,44 @@ from .utils.exceptions import \
     ParameterTypehintMissingError, \
     ReturnTypehintMissingError
 
+from .utils.autocast_registry import CastRegistry
+
 from .utils.types import UnspecifiedType
 from .utils.constants import RETURN_TYPE_NAME
 
-_DEFAULT_STRICT_OPTIONS = {
+_DEFAULT_AUTOCAST_OPTIONS = {
     "parameter_typehints": True,
     "return_typehint": True
 }
 
 
-def strict(*args, **kwargs):
-    """ Decorates a function to be strictly type checked.
+def autocast(*args, **kwargs):
+    """ Decorates a function to autocast its parameters type checked.
     """
     if is_clean_decorator(args, kwargs):
         # Only function was passed -> extract it from args.
         func = args[0]
         # Strict wrapper is constructed with default options.
-        return StrictWrappedFunction(func, _DEFAULT_STRICT_OPTIONS)
+        return AutocastWrappedFunction(func, _DEFAULT_AUTOCAST_OPTIONS)
     else:
         # The function was not passed, but arguments for options instead. Let's
         # gather them as a dict. Then the default options are loaded and
         # updated by the ones given as kwargs.
-        options = _DEFAULT_STRICT_OPTIONS.copy()
+        options = _DEFAULT_AUTOCAST_OPTIONS.copy()
         options.update(kwargs)
         # Afterwards return a lambda expression that will construct the wrapper
         # as soon as it is called.
-        return lambda func: StrictWrappedFunction(func, options)
+        return lambda func: AutocastWrappedFunction(func, options)
 
 
-class StrictWrappedFunction:
-    def __init__(self, function, options=_DEFAULT_STRICT_OPTIONS):
+class AutocastWrappedFunction:
+    def __init__(self, function, options=_DEFAULT_AUTOCAST_OPTIONS):
         self.function = function
         self.options = options
         self.specs = FunctionSpecifications(function)
 
         # TODO: execute static checks on the typehints
-        self.__verify_param_typehints()
-        self.__verify_return_typehint()
-        # self.__verify_param_default_values()
-        
+
         pass
 
         self.__rehook_metadata()
@@ -65,13 +64,13 @@ class StrictWrappedFunction:
             if self.specs.typehints[key] == UnspecifiedType:
                 continue
             elif not has_proper_type(value, self.specs.typehints[key]):
-                raise ParameterTypeError(
-                    self.function, key, self.specs.typehints[key], type(value)
-                )
+                ad[key] = CastRegistry.cast(value, self.specs.typehints[key])
+            else:
+                pass
 
         # If the arguments were correct, execute the function and catch the
         # return value for further inspection.
-        result = self.function(*args, **kwargs)
+        result = self.function(**ad)
         result_typehint = self.specs.typehints[RETURN_TYPE_NAME]
 
         return_is_hinted = (result_typehint != UnspecifiedType)
@@ -81,28 +80,11 @@ class StrictWrappedFunction:
         # If the return value was type hinted and the type does not match,
         # raise an exception ...
         if return_is_hinted and return_has_wrong_type:
-            raise ReturnTypeError(self.function, result_typehint, type(result))
+            result = CastRegistry.cast(result, self.specs.typehints[RETURN_TYPE_NAME])
 
         # ... otherwise the function executed properly under strict
         # conditions and the result is returned.
         return result
-
-    def __verify_param_typehints(self):
-        if self.options["parameter_typehints"] is True:
-            for arg in self.specs.args:
-                if self.specs.typehints[arg] == UnspecifiedType:
-                    raise ParameterTypehintMissingError(self.function, arg)
-        else:
-            # Nothing to verify
-            pass
-
-    def __verify_return_typehint(self):
-        if self.options["return_typehint"] is True:
-            if self.specs.typehints[RETURN_TYPE_NAME] == UnspecifiedType:
-                raise ReturnTypehintMissingError(self.function)
-        else:
-            # Nothing to verify
-            pass
 
     def __rehook_metadata(self):
         """ Changes metadata of this object to that of the wrapped function, so

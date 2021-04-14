@@ -5,7 +5,8 @@ from strongpy.utils.exceptions import \
     ParameterTypeError, \
     ReturnTypeError, \
     NonKwargInDecoratorError, \
-    ParameterTypehintMissingError
+    ParameterTypehintMissingError, \
+    ReturnTypehintMissingError
 
 
 @strict()
@@ -18,17 +19,17 @@ def wrong_return_type(a: str, b: int) -> float:
     return a * b
 
 
-@strict(force_parameter_typehints=False)
+@strict(parameter_typehints=False, return_typehint=False)
 def no_annotations(a, b):
     return a + b
 
 
-@strict(force_parameter_typehints=False)
+@strict(parameter_typehints=False)
 def some_annotations(a, b: int) -> int:
     return a * b
 
 
-@strict(force_parameter_typehints=False)
+@strict(parameter_typehints=False, return_typehint=False)
 def few_annotations(a: int, b):
     return a + b
 
@@ -86,6 +87,14 @@ def test_non_kwarg_definition():
 
 def test_missing_typehints():
     with pytest.raises(ParameterTypehintMissingError):
-        @strict()
-        def no_annotations(a, b):
-            return a * b
+        with pytest.raises(ReturnTypehintMissingError):
+            @strict()
+            def no_annotations(a, b):
+                return a * b
+
+
+def test_missing_return_typehint():
+    with pytest.raises(ReturnTypehintMissingError):
+        @strict
+        def no_return_typehint(a: int, b: int):
+            return a + b
