@@ -1,9 +1,8 @@
-# import __main__
-import strongpy
 from strongpy import strict, autocast
 
+
 @autocast
-def repeat(text: str, num: int) -> bool:
+def repeat(text: str, num: int) -> str:
     return text * num
 
 
